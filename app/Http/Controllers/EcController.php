@@ -1,71 +1,72 @@
 <?php
 
-// app/Http/Controllers/EcController.php
-
 namespace App\Http\Controllers;
 
 use App\Models\Ec;
-use App\Models\Ue;
+use App\Models\UE;
 use Illuminate\Http\Request;
 
 class EcController extends Controller
 {
-    // Afficher tous les Ecs
     public function index()
     {
-        $ecs = Ec::all(); 
-        return view('ecs.index', compact('ecs')); // Retourner la vue avec les Ecs
+        $ecs = Ec::with('ue')->get();
+        return view('ecs.index', compact('ecs'));
     }
 
-    // Afficher le formulaire de création
     public function create()
     {
-        $ues = Ue::all(); 
-        return view('ecs.create', compact('ues')); // Afficher le formulaire de création avec les UEs
+        $ues = UE::all();
+        return view('ecs.create', compact('ues'));
     }
 
-    // Enregistrer un nouvel EC
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'code' => 'required|string|max:255',
-            'nom' => 'required|string|max:255',
-            'coefficient' => 'required|numeric',
-            'ue_id' => 'required|exists:ues,id', // Valider que l'UE existe
+        $request->validate([
+            'code' => ['required', 'unique:ecs,code', 'regex:/^EC\d{2}$/'],
+            'nom' => 'required',
+            'coefficient' => 'required|numeric|min:1|max:5',
+            'ue_id' => 'required|exists:ues,id'
+        ], [
+        'code.regex' => 'Le code doit correspondre au format EC##.',
+        'code.unique' => 'Ce code est déjà utilisé.',  
         ]);
+        Ec::create($request->all());
 
-        Ec::create($validated);
-
-        return redirect()->route('ecs.index')->with('success', 'EC créé avec succès');
+        return redirect()->route('ecs.index')->with('success', 'Élément Constitutif (EC) créé avec succès.');
     }
 
-    // Afficher le formulaire d'édition
     public function edit(Ec $ec)
     {
-        $ues = Ue::all(); 
-        return view('ecs.edit', compact('ec', 'ues')); // Afficher le formulaire d'édition avec les données
+        $ues = UE::all();
+        return view('ecs.edit', compact('ec', 'ues'));
     }
 
-    // Mettre à jour un EC
-    public function update(Request $request, Ec $ec)
-    {
-        $validated = $request->validate([
-            'code' => 'required|string|max:10',
-            'nom' => 'required|string|max:50',
-            'coefficient' => 'required|numeric',
-            'ue_id' => 'required|exists:ues,id', // Valider que l'UE existe
-        ]);
+  
 
-        $ec->update($validated); 
+public function update(Request $request, $id)
+{
+    $request->validate([
+        'code' => ['required', 'unique:ecs,code,'.$id, 'regex:/^EC\d{2}$/'],
+        'nom' => 'required|string|max:255',
+        'coefficient' => 'required|numeric|min:1|max:5',
+        'ue_id' => 'required|exists:ues,id'
+    ], [
+        'code.regex' => 'Le code doit correspondre au format EC##.',
+        'code.unique' => 'Ce code est déjà utilisé.',
+    ]);
 
-        return redirect()->route('ecs.index')->with('success', 'EC mis à jour avec succès');
-    }
+    $ec = Ec::findOrFail($id);
+    $ec->update($request->all());
 
-    // Suppression UE
+    return redirect()->route('ecs.index')->with('success', 'EC mis à jour avec succès.');
+}
+
+
     public function destroy(Ec $ec)
     {
-        $ec->delete(); 
+        $ec->delete();
 
-        return redirect()->route('ecs.index')->with('success', 'EC supprimé avec succès');
+        return redirect()->route('ecs.index')->with('success', 'Élément Constitutif (EC) supprimé avec succès.');
     }
 }
