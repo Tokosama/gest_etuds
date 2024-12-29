@@ -7,7 +7,7 @@
         <!-- Titre Principal -->
         <h1 class="text-center text-5xl font-extrabold text-gray-800 mb-20 tracking-wide">
             <span class="bg-gradient-to-r from-blue-500 to-indigo-500 text-transparent bg-clip-text">
-                Bienvenue sur le Dashboard Étudiant
+                Bienvenue sur le Dashboard Etudiant
             </span>
         </h1>
 
